@@ -9,9 +9,11 @@ public class Game {
 
     private char[][] gameBoard;
     private Player[] players;
+    private Set<Integer> playedPositions;
 
     public Game(Player[] players){
         gameBoard = new char[ROWS][COLUMNS];
+        playedPositions = new HashSet<>();
         this.players = new Player[2];
         setPlayers(players);
         initialize();
@@ -58,21 +60,32 @@ public class Game {
         return players[1];
     }
 
+    private static void printSeparator() {
+        System.out.println("----------------------------------------\n");
+    }
+
     public void play() {
         Player presentPlayer = findFirstPlayer();
+        printSeparator();
+        System.out.println("\n'X' starts the game.");
+        printSeparator();
         Scanner sc = new Scanner(System.in);
         this.print();
         while (  !(this.isBoardFull()) && !(this.gameOver())) {
-
                 System.out.println("Enter a position on the board");
                 System.out.print(presentPlayer.getName() + ": ");
                 int position = sc.nextInt();
-                this.setPieceAtPosition(presentPlayer, position);
-                this.print();
-                presentPlayer = this.switchTurns(presentPlayer);
+                if ((playedPositions.add(position))) {
+                    this.setPieceAtPosition(presentPlayer, position);
+                    this.print();
+                    presentPlayer = this.switchTurns(presentPlayer);
+                } else {
+                    System.out.print("Pick another position, That spot is occupied.\n");
+                }
         }
 
         if (this.isBoardFull()) {
+            System.out.println("You both suck!!!\n");
             System.out.println("This game was a draw");
         }
     }
@@ -89,9 +102,9 @@ public class Game {
     public void print() {
         for(char[] c : gameBoard) {
             for (char p : c) {
-                System.out.print(p + " ");
+                System.out.print(p + "\t");
             }
-            System.out.println();
+            System.out.println("\n");
         }
 
     }
@@ -108,7 +121,29 @@ public class Game {
     }
 
     public static void main(String[] args){
-        Player[] players = {new Player("John", 'x'), new Player("Peter", 'o')};
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Welcome to intense 'X' and 'O'.");
+        printSeparator();
+
+        System.out.print("Enter player 1 name: ");
+        String p1Name= sc.next();
+        System.out.print(p1Name +  ", choose (x or o): ");
+        char p1Piece = sc.next().toLowerCase().charAt(0);
+        Player p1 = new Player(p1Name, p1Piece);
+        printSeparator();
+
+        System.out.print("Enter player 2 name: ");
+        String p2Name= sc.next();
+        char p2Piece;
+        if (p1Piece == 'x') {
+            p2Piece = 'o';
+        } else {
+            p2Piece = 'x';
+        }
+        System.out.println(p2Name + ", you are using: " + p2Piece);
+        Player p2 = new Player(p2Name, p2Piece);
+        Player[] players = {p1, p2};
         Game game = new Game(players);
         game.play();
 
