@@ -4,14 +4,16 @@ public class Game {
 
     public static final char CROSS = 'X';
     public static final char NOUGHT = 'O';
+    public static final char DRAW = 'D';
     public static final int ROWS = 3;
     public static final int COLUMNS = 3;
 
-    //add winning bets to be done after loosing in an array.
+
     public List<String> punishments;
     private char[][] gameBoard;
     private Player[] players;
     private Set<Integer> playedPositions;
+    private Player winner;
 
     public Game(Player[] players){
         gameBoard = new char[ROWS][COLUMNS];
@@ -25,7 +27,7 @@ public class Game {
     private void initialize() {
         for(int i = 0; i < ROWS; i++){
             for(int j = 0; j < COLUMNS; j++) {
-                int rep = (ROWS * i) + j;
+                int rep = (ROWS * i) + j + 1;
                 gameBoard[i][j] = Integer.toString(rep).charAt(0);
             }
         }
@@ -35,7 +37,7 @@ public class Game {
         punishments.add("Dish out a dirty little secret of yours.");
         punishments.add("Bend over backwards and kiss the wall.");
         punishments.add("Inhale my Smelly sock fumes.");
-        punishments.add("Undress and wiggle, wiggle, wiggle while saying shouting \"Do I look sexy now\". ");
+        punishments.add("Undress and wiggle, wiggle, wiggle while saying,  \"Do I look sexy now?\". ");
         punishments.add("Eat the hot sauce.");
     }
 
@@ -55,15 +57,15 @@ public class Game {
     }
 
     private void setPieceAtPosition(Player p, int position) {
-        int row = position/ROWS;
-        int col = position % ROWS;
+        int row = (position - 1)/ROWS;
+        int col = (position - 1)% ROWS;
 
         gameBoard[row][col] = p.getPiece();
     }
 
     private char getPieceAtPosition(int position) {
-        int row = position/ROWS;
-        int col = position % ROWS;
+        int row = (position - 1)/ROWS;
+        int col = (position - 1)% ROWS;
 
         return gameBoard[row][col];
     }
@@ -95,7 +97,7 @@ public class Game {
                 System.out.print(presentPlayer.getName() + ": ");
                 int position = sc.nextInt();
                 printSeparator();
-                if ((playedPositions.add(position))) {
+                if (playedPositions.add(position)) {
                     this.setPieceAtPosition(presentPlayer, position);
                     this.print();
                     presentPlayer = this.switchTurns(presentPlayer);
@@ -104,10 +106,12 @@ public class Game {
                 }
         }
 
-        if (this.isBoardFull() && this.gameOver() == false) {
-            System.out.println("You both suck!!!\n");
-            System.out.println("This game was a draw");
-        }
+       if(winner != null) {
+           System.out.println(winner.getName() + " wins the game.");
+       } else {
+           System.out.println("It was a draw");
+           System.out.println("You both suck");
+       }
     }
 
     public boolean isBoardFull() {
@@ -119,27 +123,66 @@ public class Game {
         return true;
     }
 
-    public void print() {
-        for(char[] c : gameBoard) {
-            for (char p : c) {
-                System.out.print(p + "\t");
-            }
-            System.out.println("\n");
-        }
+    public Player getWinner() {
 
+        return winner;
     }
 
+    public void setWinner(char piece) {
+        switch(piece) {
+            case CROSS:
+                winner = findFirstPlayer();
+                break;
+            case NOUGHT:
+                winner = switchTurns(findFirstPlayer());
+                break;
+        }
+    }
 
-    //refactor to get winner and the piece that won.
     public boolean gameOver() {
-        return  this.getPieceAtPosition(0) == this.getPieceAtPosition(1) && this.getPieceAtPosition(0) == this.getPieceAtPosition(2) ||
-                this.getPieceAtPosition(0) == this.getPieceAtPosition(3) && this.getPieceAtPosition(0) == this.getPieceAtPosition(6) ||
-                this.getPieceAtPosition(1) == this.getPieceAtPosition(4) && this.getPieceAtPosition(1) == this.getPieceAtPosition(7) ||
-                this.getPieceAtPosition(2) == this.getPieceAtPosition(5) && this.getPieceAtPosition(2) == this.getPieceAtPosition(8) ||
-                this.getPieceAtPosition(3) == this.getPieceAtPosition(4) && this.getPieceAtPosition(3) == this.getPieceAtPosition(5) ||
-                this.getPieceAtPosition(6) == this.getPieceAtPosition(7) && this.getPieceAtPosition(7) == this.getPieceAtPosition(8) ||
-                this.getPieceAtPosition(0) == this.getPieceAtPosition(4) && this.getPieceAtPosition(0) == this.getPieceAtPosition(8) ||
-                this.getPieceAtPosition(2) == this.getPieceAtPosition(4) && this.getPieceAtPosition(4) == this.getPieceAtPosition(6);
+
+        boolean col1 = this.getPieceAtPosition(1) == this.getPieceAtPosition(2) && this.getPieceAtPosition(1) == this.getPieceAtPosition(3);
+        boolean col2 = this.getPieceAtPosition(2) == this.getPieceAtPosition(5) && this.getPieceAtPosition(2) == this.getPieceAtPosition(8);
+        boolean col3 = this.getPieceAtPosition(3) == this.getPieceAtPosition(6) && this.getPieceAtPosition(3) == this.getPieceAtPosition(9);
+        boolean row1 = this.getPieceAtPosition(1) == this.getPieceAtPosition(4) && this.getPieceAtPosition(1) == this.getPieceAtPosition(7);
+        boolean row2 = this.getPieceAtPosition(4) == this.getPieceAtPosition(5) && this.getPieceAtPosition(4) == this.getPieceAtPosition(6);
+        boolean row3 = this.getPieceAtPosition(7) == this.getPieceAtPosition(8) && this.getPieceAtPosition(8) == this.getPieceAtPosition(9);
+        boolean diag1 = this.getPieceAtPosition(1) == this.getPieceAtPosition(5) && this.getPieceAtPosition(1) == this.getPieceAtPosition(9);
+        boolean diag2 = this.getPieceAtPosition(3) == this.getPieceAtPosition(5) && this.getPieceAtPosition(5) == this.getPieceAtPosition(7);
+
+        if (col1) {
+            setWinner(this.getPieceAtPosition(1));
+        } else if (col2) {
+            setWinner(this.getPieceAtPosition(2));
+        } else if (col3) {
+            setWinner(this.getPieceAtPosition(4));
+        } else if (row1) {
+            setWinner(this.getPieceAtPosition(1));
+        } else if (row2) {
+            setWinner(this.getPieceAtPosition(4));
+        } else if (row3) {
+            setWinner(this.getPieceAtPosition(7));
+        } else if (diag1) {
+            setWinner(this.getPieceAtPosition(1));
+        } else if (diag2) {
+            setWinner(this.getPieceAtPosition(3));
+        }
+
+        return col1 || col2 || col3 || row1 || row2 || row3 || diag1 || diag2;
+    }
+
+    public void print() {
+        for(int j = 0; j < ROWS; j++) {
+            for (int i = 0; i < COLUMNS; i++) {
+                System.out.print(" " + gameBoard[j][i]);
+                if (i != COLUMNS - 1)
+                    System.out.print(" |");
+            }
+            if (j != ROWS - 1)
+                System.out.println("\n-----------");
+        }
+        System.out.println("\n");
+
     }
 
     public static void main(String[] args){
